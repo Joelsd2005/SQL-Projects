@@ -1,0 +1,82 @@
+-- Retrieve all data from the worldlifeexpenctancy table
+SELECT * 
+FROM worldlifeexpenctancy; 
+
+
+-- Calculate the minimum and maximum life expectancy for each country, 
+-- along with the increase in life expectancy over 15 years
+SELECT Country, 
+       MIN(`Life expectancy`) AS Min_Life_Expectancy, 
+       MAX(`Life expectancy`) AS Max_Life_Expectancy,
+       ROUND(MAX(`Life expectancy`) - MIN(`Life expectancy`), 1) AS Life_Increase_15_Years
+FROM worldlifeexpenctancy
+GROUP BY Country
+HAVING MIN(`Life expectancy`) <> 0
+AND MAX(`Life expectancy`) <> 0
+ORDER BY Life_Increase_15_Years ASC;
+
+
+-- Calculate the average life expectancy per year
+SELECT Year, ROUND(AVG(`Life expectancy`),2) AS Avg_Life_Expectancy
+FROM worldlifeexpenctancy
+GROUP BY Year
+ORDER BY Year;
+
+
+-- Retrieve all data from the worldlifeexpenctancy table (duplicate query)
+SELECT * 
+FROM worldlifeexpenctancy; 
+
+
+-- Calculate the average life expectancy and GDP for each country
+SELECT Country, 
+       ROUND(AVG(`Life expectancy`),2) AS Life_Exp, 
+       ROUND(AVG(GDP),1) AS GDP
+FROM worldlifeexpenctancy
+GROUP BY Country
+HAVING Life_Exp > 0
+AND GDP > 0
+ORDER BY GDP DESC;
+
+
+-- Count the number of countries with high and low GDP, 
+-- and calculate the average life expectancy for each group
+SELECT 
+    SUM(CASE WHEN GDP >= 1500 THEN 1 ELSE 0 END) AS High_GDP_Count,
+    AVG(CASE WHEN GDP >= 1500 THEN `Life expectancy` ELSE NULL END) AS High_GDP_Life_Expectancy,
+    SUM(CASE WHEN GDP <= 1500 THEN 1 ELSE 0 END) AS Low_GDP_Count,
+    AVG(CASE WHEN GDP <= 1500 THEN `Life expectancy` ELSE NULL END) AS Low_GDP_Life_Expectancy
+FROM worldlifeexpenctancy;
+
+
+-- Calculate the average life expectancy for developed and developing countries
+SELECT Status, ROUND(AVG(`Life expectancy`),1) AS Avg_Life_Expectancy
+FROM worldlifeexpenctancy
+GROUP BY Status;  
+
+
+-- Count the number of distinct countries and calculate the average life expectancy 
+-- for developed and developing countries
+SELECT Status, 
+       COUNT(DISTINCT Country) AS Country_Count, 
+       ROUND(AVG(`Life expectancy`),1) AS Avg_Life_Expectancy
+FROM worldlifeexpenctancy
+GROUP BY Status;  
+
+
+-- Calculate the average life expectancy and BMI for each country, 
+-- and order by BMI in ascending order
+SELECT Country, 
+       ROUND(AVG(`Life expectancy`),2) AS Life_Exp, 
+       ROUND(AVG(BMI),1) AS BMI
+FROM worldlifeexpenctancy
+GROUP BY Country
+HAVING Life_Exp > 0
+AND BMI > 0
+ORDER BY BMI ASC;
+
+
+-- Calculate the rolling total of Adult Mortality over the years for each country
+SELECT Country, Year, `Life expectancy`, `Adult Mortality`,
+       SUM(`Adult Mortality`) OVER(PARTITION BY Country ORDER BY Year) AS Rolling_Total
+FROM worldlifeexpenctancy;
