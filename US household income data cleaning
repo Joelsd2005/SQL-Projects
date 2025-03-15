@@ -1,0 +1,81 @@
+-- Retrieve all records from the us_household_income table
+SELECT * 
+FROM us_project.us_household_income;
+
+-- Retrieve all records from the us_household_income_statistics table
+SELECT * 
+FROM us_project.us_household_income_statistics;
+
+-- Rename incorrectly formatted column name in us_household_income_statistics
+ALTER TABLE us_project.us_household_income_statistics 
+RENAME COLUMN `i>>?id` TO `id`;
+
+-- Count the total number of records in the us_household_income table
+SELECT COUNT(id) 
+FROM us_project.us_household_income;
+
+-- Count the total number of records in the us_household_income_statistics table
+SELECT COUNT(id) 
+FROM us_project.us_household_income_statistics;
+
+-- Identify duplicate records based on the 'id' column in the us_household_income table
+SELECT id, COUNT(id) 
+FROM us_project.us_household_income
+GROUP BY id
+HAVING COUNT(id) > 1;
+
+-- Delete duplicate records from the us_household_income table while keeping the first occurrence
+DELETE FROM us_household_income
+WHERE row_id IN (
+    SELECT row_id
+    FROM (
+        SELECT row_id, id,
+               ROW_NUMBER() OVER(PARTITION BY id ORDER BY id) AS row_num
+        FROM us_project.us_household_income
+    ) duplicates
+    WHERE row_num > 1
+);
+
+-- Identify duplicate records based on the 'id' column in the us_household_income_statistics table
+SELECT id, COUNT(id)
+FROM us_project.us_household_income_statistics
+GROUP BY id
+HAVING COUNT(id) > 1;
+
+-- Retrieve distinct state names from the us_household_income table and order them alphabetically
+SELECT DISTINCT State_Name 
+FROM us_project.us_household_income
+ORDER BY 1;
+
+-- Correct spelling error in state names (georia → Georgia)
+UPDATE us_project.us_household_income
+SET State_Name = 'Georgia'
+WHERE State_Name = 'georia';
+
+-- Correct spelling error in state names (alabama → Alabama)
+UPDATE us_project.us_household_income
+SET State_Name = 'Alabama'
+WHERE State_Name = 'alabama';
+
+-- Retrieve all records where the county is 'Autauga County' and order them by the first column
+SELECT * 
+FROM us_project.us_household_income
+WHERE County = 'Autauga County'
+ORDER BY 1;
+
+-- Correct Place name for Autauga County where City is incorrectly listed as 'Vinemont'
+UPDATE us_household_income
+SET Place = 'Autaugaville'
+WHERE County = 'Autauga County'
+AND City = 'Vinemont';
+
+-- Count the number of records for each Type category and order results alphabetically
+SELECT Type, COUNT(Type) 
+FROM us_project.us_household_income
+GROUP BY Type
+ORDER BY 1;
+
+-- Standardize 'Type' field by correcting 'Boroughs' to 'Borough'
+UPDATE us_household_income
+SET Type = 'Borough'
+WHERE Type = 'Boroughs';
