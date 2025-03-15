@@ -1,0 +1,82 @@
+-- Retrieve all records from the us_household_income table
+SELECT * 
+FROM us_project.us_household_income;
+
+-- Retrieve all records from the us_household_income_statistics table
+SELECT * 
+FROM us_project.us_household_income_statistics;
+
+-- Get the top 10 states by total land area (ALand), ordered in descending order
+SELECT State_Name, SUM(ALand) AS Total_Land_Area, SUM(AWater) AS Total_Water_Area
+FROM us_project.us_household_income
+GROUP BY State_Name
+ORDER BY Total_Land_Area DESC
+LIMIT 10;
+
+-- Get the top 10 states by total water area (AWater), ordered in descending order
+SELECT State_Name, SUM(ALand) AS Total_Land_Area, SUM(AWater) AS Total_Water_Area
+FROM us_project.us_household_income
+GROUP BY State_Name
+ORDER BY Total_Water_Area DESC
+LIMIT 10;
+
+-- Join us_household_income with us_household_income_statistics to analyze combined data
+SELECT * 
+FROM us_project.us_household_income u
+JOIN us_project.us_household_income_statistics us
+ON u.id = us.id;
+
+-- Join tables and filter out records where MEAN income is 0
+SELECT * 
+FROM us_project.us_household_income u
+INNER JOIN us_project.us_household_income_statistics us
+ON u.id = us.id
+WHERE MEAN <> 0;
+
+-- Retrieve key economic indicators (mean & median income) along with location details
+SELECT u.State_Name, County, Type, `Primary`, Mean, Median
+FROM us_project.us_household_income u
+INNER JOIN us_project.us_household_income_statistics us
+ON u.id = us.id
+WHERE MEAN <> 0;
+
+-- Calculate the average mean and median household income per state, showing the top 10 states
+SELECT u.State_Name, 
+       ROUND(AVG(MEAN),1) AS Avg_Mean_Income, 
+       ROUND(AVG(MEDIAN),1) AS Avg_Median_Income
+FROM us_project.us_household_income_statistics u
+INNER JOIN us_project.us_household_income_statistics us
+ON u.id = us.id
+WHERE Mean <> 0
+GROUP BY u.State_Name
+ORDER BY Avg_Median_Income DESC
+LIMIT 10;
+
+-- Analyze income distribution by location type, considering only types with more than 100 records
+SELECT Type, 
+       COUNT(Type) AS Type_Count, 
+       ROUND(AVG(MEAN),1) AS Avg_Mean_Income, 
+       ROUND(AVG(MEDIAN),1) AS Avg_Median_Income
+FROM us_project.us_household_income_statistics u
+INNER JOIN us_project.us_household_income_statistics us
+ON u.id = us.id
+WHERE Mean <> 0
+GROUP BY Type
+HAVING COUNT(Type) > 100
+ORDER BY Avg_Mean_Income DESC
+LIMIT 20;
+
+-- Retrieve all records where the Type is 'Community'
+SELECT * 
+FROM us_project.us_household_income
+WHERE Type = 'Community';
+
+-- Calculate the average mean and median income for each city within a state, ordered by highest mean income
+SELECT u.State_Name, City, 
+       ROUND(AVG(MEAN),1) AS Avg_Mean_Income, 
+       ROUND(AVG(Median),1) AS Avg_Median_Income
+FROM us_project.us_household_income u
+INNER JOIN us_project.us_household_income_statistics us
+ON u.id = us.id
+GROUP BY u.State_Name, City
+ORDER BY Avg_Mean_Income DESC;
